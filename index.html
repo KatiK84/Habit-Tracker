@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#111111" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Треккер привычек</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="title">
+      <div class="logo">✅</div>
+      <div>
+        <div class="h1">Треккер привычек</div>
+        <div class="sub" id="subtitle">Сегодня</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="settingsBtn" class="btn">⚙️</button>
+      <button id="addHabitBtn" class="btn primary">+ Привычка</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="tabs">
+      <button class="tab active" data-tab="today">Сегодня</button>
+      <button class="tab" data-tab="habits">Привычки</button>
+      <button class="tab" data-tab="stats">Статистика</button>
+    </nav>
+
+    <section id="view" class="view"></section>
+
+    <section class="footerNote">
+      <div class="note">Данные хранятся только на этом устройстве (без синхронизации).</div>
+    </section>
+  </main>
+
+  <!-- Habit modal -->
+  <div id="habitModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div class="modalTitle" id="habitModalTitle">Добавить привычку</div>
+        <button class="iconBtn" id="habitCloseBtn" aria-label="Закрыть">✕</button>
+      </div>
+      <form id="habitForm" class="form">
+        <label class="field">
+          <span>Название</span>
+          <input id="habitName" class="input" placeholder="например: Вода" required />
+        </label>
+
+        <label class="field">
+          <span>Эмодзи (необязательно)</span>
+          <input id="habitEmoji" class="input" placeholder="например: 💧" />
+        </label>
+
+        <label class="field">
+          <span>Тип</span>
+          <select id="habitType" class="select">
+            <option value="check">Чекбокс (1 раз в день)</option>
+            <option value="count">Счётчик (0…цель)</option>
+          </select>
+        </label>
+
+        <label class="field" id="goalField">
+          <span>Цель (для счётчика)</span>
+          <input id="habitGoal" type="number" min="1" step="1" class="input" value="8" />
+        </label>
+
+        <fieldset class="fieldset">
+          <legend>Активные дни</legend>
+          <div class="dow">
+            <label><input type="checkbox" class="dowChk" value="1" checked>Пн</label>
+            <label><input type="checkbox" class="dowChk" value="2" checked>Вт</label>
+            <label><input type="checkbox" class="dowChk" value="3" checked>Ср</label>
+            <label><input type="checkbox" class="dowChk" value="4" checked>Чт</label>
+            <label><input type="checkbox" class="dowChk" value="5" checked>Пт</label>
+            <label><input type="checkbox" class="dowChk" value="6">Сб</label>
+            <label><input type="checkbox" class="dowChk" value="0">Вс</label>
+          </div>
+        </fieldset>
+
+        <div class="formActions">
+          <button type="button" id="habitDeleteBtn" class="btn danger hidden">Удалить</button>
+          <button type="button" id="habitCancelBtn" class="btn">Отмена</button>
+          <button type="submit" class="btn primary">Сохранить</button>
+        </div>
+        <input id="habitEditingId" type="hidden" />
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings modal -->
+  <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div class="modalTitle">Настройки</div>
+        <button class="iconBtn" id="settingsCloseBtn" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="form">
+        <div class="settingRow">
+          <div>
+            <div class="settingTitle">PIN-код</div>
+            <div class="settingDesc">Если включён — приложение просит PIN при открытии.</div>
+          </div>
+          <button id="pinActionBtn" class="btn primary">Настроить</button>
+        </div>
+
+        <div class="settingRow">
+          <div>
+            <div class="settingTitle">Экспорт данных</div>
+            <div class="settingDesc">Скачать резервную копию (JSON).</div>
+          </div>
+          <button id="exportBtn" class="btn">Экспорт</button>
+        </div>
+
+        <div class="settingRow">
+          <div>
+            <div class="settingTitle">Импорт данных</div>
+            <div class="settingDesc">Восстановить из JSON (перезапишет текущее).</div>
+          </div>
+          <label class="btn fileBtn">
+            Импорт
+            <input id="importFile" type="file" accept="application/json" />
+          </label>
+        </div>
+
+        <div class="formActions">
+          <button type="button" id="settingsDoneBtn" class="btn primary">Готово</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lock -->
+  <div id="lock" class="lock hidden">
+    <div class="lockCard">
+      <div class="lockTitle">Введите PIN</div>
+      <input id="pinInput" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" />
+      <button id="pinUnlockBtn" class="btn primary">Открыть</button>
+      <div id="pinError" class="lockError hidden">Неверный PIN</div>
+    </div>
+  </div>
+
+  <!-- PIN modal -->
+  <div id="pinModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div class="modalTitle" id="pinModalTitle">PIN-код</div>
+        <button class="iconBtn" id="pinCloseBtn" aria-label="Закрыть">✕</button>
+      </div>
+
+      <form id="pinForm" class="form">
+        <div id="pinHasExisting" class="field hidden">
+          <span>Текущий PIN</span>
+          <input id="pinOld" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="8" />
+        </div>
+
+        <label class="field">
+          <span>Новый PIN (4–8 цифр)</span>
+          <input id="pinNew" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="8" required />
+        </label>
+
+        <label class="field">
+          <span>Повтори новый PIN</span>
+          <input id="pinNew2" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="8" required />
+        </label>
+
+        <div class="formActions">
+          <button type="button" id="pinDisableBtn" class="btn danger">Отключить PIN</button>
+          <button type="button" id="pinCancelBtn" class="btn">Отмена</button>
+          <button type="submit" class="btn primary">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

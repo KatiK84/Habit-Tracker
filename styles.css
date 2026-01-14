@@ -1,0 +1,54 @@
+:root{--bg:#0b0b0b;--card:#141414;--muted:#9aa0a6;--text:#f1f3f4;--line:#232323;--ok:#4ade80;--warn:#f59e0b}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.topbar{position:sticky;top:0;z-index:10;background:rgba(11,11,11,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.title{display:flex;gap:10px;align-items:center}
+.logo{width:38px;height:38px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;font-size:20px}
+.h1{font-weight:700}.sub{color:var(--muted);font-size:12px;margin-top:2px}
+.actions{display:flex;gap:10px;align-items:center}
+.container{padding:14px;max-width:860px;margin:0 auto}
+.tabs{display:flex;gap:8px;margin:6px 0 12px}
+.tab{flex:1;padding:10px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--text);cursor:pointer;font-weight:600}
+.tab.active{border-color:rgba(255,122,24,.65);background:rgba(255,122,24,.12)}
+.view{display:flex;flex-direction:column;gap:10px;padding-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
+.row1{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.cardTitle{font-weight:900;font-size:16px}
+.cardMeta{color:var(--muted);font-size:13px;margin-top:4px;line-height:1.3}
+.btnRow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:transparent;color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:600}
+.btn.primary{background:rgba(255,122,24,.18);border-color:rgba(255,122,24,.55)}
+.btn.danger{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.35)}
+.hidden{display:none}
+.select,.input{background:var(--card);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:12px;outline:none}
+.input{width:100%}.select{cursor:pointer}
+.counter{display:flex;gap:8px;align-items:center}
+.counterVal{padding:8px 10px;border:1px solid var(--line);border-radius:12px;min-width:76px;text-align:center;background:rgba(255,255,255,.03)}
+.pill{padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted);white-space:nowrap}
+.pill.ok{color:var(--ok);border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.08)}
+.pill.warn{color:var(--warn);border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08)}
+.itemDisabled{opacity:.55}
+.footerNote{margin-top:10px}
+.note{color:var(--muted);border:1px dashed var(--line);border-radius:14px;padding:12px;font-size:13px;line-height:1.4}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:18px;z-index:100}
+.modalCard{width:min(560px,100%);background:var(--bg);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.modalHeader{padding:12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:rgba(20,20,20,.85)}
+.modalTitle{font-weight:900}
+.iconBtn{border:1px solid var(--line);background:transparent;color:var(--text);width:36px;height:36px;border-radius:12px;cursor:pointer}
+.form{padding:12px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field span{color:var(--muted);font-size:12px}
+.formActions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+.fieldset{border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin:10px 0}
+.fieldset legend{color:var(--muted);font-size:12px;padding:0 6px}
+.dow{display:flex;gap:10px;flex-wrap:wrap}
+.dow label{display:flex;gap:6px;align-items:center;font-weight:600;font-size:13px}
+.settingRow{display:flex;gap:12px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
+.settingTitle{font-weight:800}
+.settingDesc{color:var(--muted);font-size:12px;margin-top:4px;max-width:360px}
+.fileBtn{position:relative;overflow:hidden}
+.fileBtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.lock{position:fixed;inset:0;background:rgba(11,11,11,.98);display:grid;place-items:center;z-index:200}
+.lockCard{width:min(420px,92vw);border:1px solid var(--line);border-radius:18px;padding:16px;background:rgba(20,20,20,.9)}
+.lockTitle{font-weight:900;font-size:18px;margin-bottom:10px}
+.lockError{color:#ef4444;margin-top:10px;font-weight:800}
