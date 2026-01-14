@@ -56,8 +56,20 @@ function completionRate(h,n){const dates=lastNDates(n);let eligible=0,done=0;for
 function streak(h){let count=0;const d=parseISO(todayISO());for(let i=0;i<3650;i++){const cur=new Date(d);cur.setDate(cur.getDate()-i);const iso=isoFromDate(cur);const dow=cur.getDay();if(!h.days.includes(dow))continue;if(isCompletedOnDate(h,iso))count++;else break}return count}
 function renderStats(){subtitleEl.textContent="Статистика";viewEl.innerHTML="";if(!state.habits.length){viewEl.innerHTML=`<div class="card"><div class="cardTitle">Нет привычек</div></div>`;return}const active=state.habits.filter(isHabitActiveToday),done=active.filter(completedToday).length,pct=active.length?Math.round(done*100/active.length):0;const head=document.createElement("div");head.className="card";head.innerHTML=`<div class="cardTitle">Сегодня: ${done} / ${active.length} (${pct}%)</div><div class="cardMeta">Ниже — % за 7/30 дней и серия по каждой привычке.</div>`;viewEl.appendChild(head);state.habits.forEach(h=>{const r7=completionRate(h,7),r30=completionRate(h,30),st=streak(h),title=`${h.emoji?h.emoji+" ":""}${h.name}`;const card=document.createElement("div");card.className="card";card.innerHTML=`<div class="row1"><div><div class="cardTitle">${escapeHtml(title)}</div><div class="cardMeta"><div>Серия: <b>${st}</b></div><div>7 дней: ${r7.done}/${r7.eligible} (${r7.pct}%)</div><div>30 дней: ${r30.done}/${r30.eligible} (${r30.pct}%)</div></div></div><button class="btn" data-action="edit" data-id="${h.id}">Редактировать</button></div>`;viewEl.appendChild(card)});viewEl.onclick=e=>{const b=e.target.closest("button[data-action='edit']");if(!b)return;const h=state.habits.find(x=>x.id===b.dataset.id);if(h)openHabitModal(h)}}
 function render(){state.tab==="today"?renderToday():state.tab==="habits"?renderHabits():renderStats()}
-function openSettings(){settingsModal.classList.remove("hidden")}
+function openSettings(){
+  // If another modal is open (e.g., "Добавить привычку"), close it first.
+  // Otherwise it can look like Settings "doesn't close" because a second modal remains visible.
+  try{ closeHabitModal(); }catch{}
+  settingsModal.classList.remove("hidden")
+}
 function closeSettings(){settingsModal.classList.add("hidden")}
+
+// Convenience: allow closing modals with Escape
+document.addEventListener("keydown",(e)=>{
+  if(e.key!=="Escape") return;
+  closeSettings();
+  closeHabitModal();
+});
 settingsBtn.addEventListener("click",openSettings);settingsCloseBtn.addEventListener("click",closeSettings);settingsDoneBtn.addEventListener("click",closeSettings);settingsModal.addEventListener("click",e=>{if(e.target===settingsModal)closeSettings()});
 exportBtn.addEventListener("click",()=>{const data={habits:state.habits,log:state.log};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`habit-tracker-backup-${todayISO()}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
 importFile.addEventListener("change",async()=>{const file=importFile.files?.[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(!Array.isArray(data.habits)||typeof data.log!=="object")throw 0;state.habits=data.habits.map(normalizeHabit);state.log=data.log||{};saveJSON(HABITS_KEY,state.habits);saveJSON(LOG_KEY,state.log);alert("Импорт выполнен.");render()}catch{alert("Не удалось импортировать файл.")}finally{importFile.value=""}});
