@@ -102,14 +102,6 @@
       <div class="form">
         <div class="settingRow">
           <div>
-            <div class="settingTitle">PIN-код</div>
-            <div class="settingDesc">Если включён — приложение просит PIN при открытии.</div>
-          </div>
-          <button id="pinActionBtn" class="btn primary">Настроить</button>
-        </div>
-
-        <div class="settingRow">
-          <div>
             <div class="settingTitle">Экспорт данных</div>
             <div class="settingDesc">Скачать резервную копию (JSON).</div>
           </div>
@@ -134,48 +126,9 @@
     </div>
   </div>
 
-  <!-- Lock -->
-  <div id="lock" class="lock hidden">
-    <div class="lockCard">
-      <div class="lockTitle">Введите PIN</div>
-      <input id="pinInput" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" />
-      <button id="pinUnlockBtn" class="btn primary">Открыть</button>
-      <div id="pinError" class="lockError hidden">Неверный PIN</div>
-    </div>
-  </div>
+  <!-- PIN removed -->
 
-  <!-- PIN modal -->
-  <div id="pinModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modalCard">
-      <div class="modalHeader">
-        <div class="modalTitle" id="pinModalTitle">PIN-код</div>
-        <button class="iconBtn" id="pinCloseBtn" aria-label="Закрыть">✕</button>
-      </div>
-
-      <form id="pinForm" class="form">
-        <div id="pinHasExisting" class="field hidden">
-          <span>Текущий PIN</span>
-          <input id="pinOld" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="8" />
-        </div>
-
-        <label class="field">
-          <span>Новый PIN (4–8 цифр)</span>
-          <input id="pinNew" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="8" required />
-        </label>
-
-        <label class="field">
-          <span>Повтори новый PIN</span>
-          <input id="pinNew2" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="8" required />
-        </label>
-
-        <div class="formActions">
-          <button type="button" id="pinDisableBtn" class="btn danger">Отключить PIN</button>
-          <button type="button" id="pinCancelBtn" class="btn">Отмена</button>
-          <button type="submit" class="btn primary">Сохранить</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <!-- PIN modal removed -->
 
   <script src="app.js"></script>
 </body>

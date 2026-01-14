@@ -1,4 +1,4 @@
-const HABITS_KEY="habitTracker.habits.v1",LOG_KEY="habitTracker.log.v1",SETTINGS_KEY="habitTracker.settings.v1";
+const HABITS_KEY="habitTrackerNoPin.habits.v1",LOG_KEY="habitTrackerNoPin.log.v1";
 function uid(){return"h_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9)}
 function todayISO(){const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),dd=String(d.getDate()).padStart(2,"0");return`${y}-${m}-${dd}`}
 function parseISO(i){const[a,b,c]=i.split("-").map(Number);return new Date(a,b-1,c,12,0,0,0)}
@@ -8,14 +8,27 @@ function escapeHtml(s){const d=document.createElement("div");d.textContent=Strin
 function loadJSON(k,f){try{const r=localStorage.getItem(k);return r?JSON.parse(r):f}catch{return f}}
 function saveJSON(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function defaultHabits(){return[{id:uid(),name:"Вода",emoji:"💧",type:"count",goal:8,days:[1,2,3,4,5,6,0]},{id:uid(),name:"Прогулка",emoji:"🚶‍♀️",type:"check",goal:1,days:[1,2,3,4,5,6,0]}]}
-let state={tab:"today",habits:loadJSON(HABITS_KEY,null),log:loadJSON(LOG_KEY,{}),settings:loadJSON(SETTINGS_KEY,{pinHash:null})};
-if(!Array.isArray(state.habits)){state.habits=defaultHabits();saveJSON(HABITS_KEY,state.habits)}
+let state={tab:"today",habits:loadJSON(HABITS_KEY,null),log:loadJSON(LOG_KEY,{})};
+// Try migrate from legacy keys (older builds)
+if(!Array.isArray(state.habits)){  for(const k of ["habitTracker.habits.v1","habits.v1","habits"]) {
+    const v=loadJSON(k,null);
+    if(Array.isArray(v)){ state.habits=v; break; }
+  }
+}
+if(!state.log || typeof state.log!=="object"){
+  for(const k of ["habitTracker.log.v1","log.v1","log"]) {
+    const v=loadJSON(k,null);
+    if(v && typeof v==="object"){ state.log=v; break; }
+  }
+}
+if(!Array.isArray(state.habits)){state.habits=defaultHabits()}
+saveJSON(HABITS_KEY,state.habits)
+if(!state.log||typeof state.log!=="object"){state.log={}}
+saveJSON(LOG_KEY,state.log)
 const viewEl=document.getElementById("view"),subtitleEl=document.getElementById("subtitle"),tabs=[...document.querySelectorAll(".tab")];
 const habitModal=document.getElementById("habitModal"),habitModalTitle=document.getElementById("habitModalTitle"),habitCloseBtn=document.getElementById("habitCloseBtn"),habitCancelBtn=document.getElementById("habitCancelBtn"),habitDeleteBtn=document.getElementById("habitDeleteBtn"),habitForm=document.getElementById("habitForm"),habitEditingId=document.getElementById("habitEditingId"),habitName=document.getElementById("habitName"),habitEmoji=document.getElementById("habitEmoji"),habitType=document.getElementById("habitType"),goalField=document.getElementById("goalField"),habitGoal=document.getElementById("habitGoal"),dowChks=[...document.querySelectorAll(".dowChk")];
 document.getElementById("addHabitBtn").addEventListener("click",()=>openHabitModal(null));
-const settingsBtn=document.getElementById("settingsBtn"),settingsModal=document.getElementById("settingsModal"),settingsCloseBtn=document.getElementById("settingsCloseBtn"),settingsDoneBtn=document.getElementById("settingsDoneBtn"),pinActionBtn=document.getElementById("pinActionBtn"),exportBtn=document.getElementById("exportBtn"),importFile=document.getElementById("importFile");
-const lockEl=document.getElementById("lock"),pinInput=document.getElementById("pinInput"),pinUnlockBtn=document.getElementById("pinUnlockBtn"),pinError=document.getElementById("pinError");
-const pinModal=document.getElementById("pinModal"),pinModalTitle=document.getElementById("pinModalTitle"),pinCloseBtn=document.getElementById("pinCloseBtn"),pinCancelBtn=document.getElementById("pinCancelBtn"),pinDisableBtn=document.getElementById("pinDisableBtn"),pinForm=document.getElementById("pinForm"),pinHasExisting=document.getElementById("pinHasExisting"),pinOld=document.getElementById("pinOld"),pinNew=document.getElementById("pinNew"),pinNew2=document.getElementById("pinNew2");
+const settingsBtn=document.getElementById("settingsBtn"),settingsModal=document.getElementById("settingsModal"),settingsCloseBtn=document.getElementById("settingsCloseBtn"),settingsDoneBtn=document.getElementById("settingsDoneBtn"),exportBtn=document.getElementById("exportBtn"),importFile=document.getElementById("importFile");
 function registerSW(){if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(console.error)}
 function isHabitActiveToday(h){const d=dowIndex(new Date());return Array.isArray(h.days)&&h.days.includes(d)}
 function getLogValue(dateISO,id){return state.log?.[dateISO]?.[id]}
@@ -46,18 +59,7 @@ function render(){state.tab==="today"?renderToday():state.tab==="habits"?renderH
 function openSettings(){settingsModal.classList.remove("hidden")}
 function closeSettings(){settingsModal.classList.add("hidden")}
 settingsBtn.addEventListener("click",openSettings);settingsCloseBtn.addEventListener("click",closeSettings);settingsDoneBtn.addEventListener("click",closeSettings);settingsModal.addEventListener("click",e=>{if(e.target===settingsModal)closeSettings()});
-exportBtn.addEventListener("click",()=>{const data={habits:state.habits,log:state.log,settings:{pinHash:state.settings.pinHash?"SET":null}};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`habit-tracker-backup-${todayISO()}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
+exportBtn.addEventListener("click",()=>{const data={habits:state.habits,log:state.log};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`habit-tracker-backup-${todayISO()}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
 importFile.addEventListener("change",async()=>{const file=importFile.files?.[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(!Array.isArray(data.habits)||typeof data.log!=="object")throw 0;state.habits=data.habits.map(normalizeHabit);state.log=data.log||{};saveJSON(HABITS_KEY,state.habits);saveJSON(LOG_KEY,state.log);alert("Импорт выполнен.");render()}catch{alert("Не удалось импортировать файл.")}finally{importFile.value=""}});
-async function sha256(text){const enc=new TextEncoder().encode(text);const buf=await crypto.subtle.digest("SHA-256",enc);return[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("")}
-function hasPin(){return!!state.settings.pinHash}
-function showLock(){lockEl.classList.remove("hidden");pinInput.value="";pinError.classList.add("hidden");setTimeout(()=>pinInput.focus(),50)}
-function hideLock(){lockEl.classList.add("hidden")}
-async function tryUnlock(){const pin=pinInput.value.trim(),hash=await sha256(pin);hash===state.settings.pinHash?hideLock():pinError.classList.remove("hidden")}
-pinUnlockBtn.addEventListener("click",tryUnlock);pinInput.addEventListener("keydown",e=>{if(e.key==="Enter")tryUnlock()});
-function openPinModal(){pinModal.classList.remove("hidden");pinOld.value="";pinNew.value="";pinNew2.value="";if(hasPin()){pinModalTitle.textContent="Изменить PIN";pinHasExisting.classList.remove("hidden")}else{pinModalTitle.textContent="Включить PIN";pinHasExisting.classList.add("hidden")}}
-function closePinModal(){pinModal.classList.add("hidden")}
-pinActionBtn.addEventListener("click",openPinModal);pinCloseBtn.addEventListener("click",closePinModal);pinCancelBtn.addEventListener("click",closePinModal);pinModal.addEventListener("click",e=>{if(e.target===pinModal)closePinModal()});
-pinDisableBtn.addEventListener("click",()=>{if(!hasPin())return closePinModal();if(!confirm("Отключить PIN?"))return;state.settings.pinHash=null;saveJSON(SETTINGS_KEY,state.settings);alert("PIN отключён.");closePinModal()});
-pinForm.addEventListener("submit",async e=>{e.preventDefault();const n=pinNew.value.trim(),n2=pinNew2.value.trim();if(!/^\d{4,8}$/.test(n))return alert("PIN должен быть 4–8 цифр.");if(n!==n2)return alert("PIN не совпадает.");if(hasPin()){const o=pinOld.value.trim(),oh=await sha256(o);if(oh!==state.settings.pinHash)return alert("Текущий PIN неверный.")}state.settings.pinHash=await sha256(n);saveJSON(SETTINGS_KEY,state.settings);alert("PIN сохранён.");closePinModal();if(hasPin())showLock()});
-function init(){registerSW();render();if(hasPin())showLock()}
+function init(){registerSW();render()}
 init();
