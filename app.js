@@ -1,4 +1,4 @@
-const HABITS_KEY="habits.v1",LOG_KEY="habitlog.v1",SETTINGS_KEY="settings.v1";
+const HABITS_KEY="habitTracker.habits.v1",LOG_KEY="habitTracker.log.v1",SETTINGS_KEY="habitTracker.settings.v1";
 function uid(){return"h_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9)}
 function todayISO(){const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),dd=String(d.getDate()).padStart(2,"0");return`${y}-${m}-${dd}`}
 function parseISO(i){const[a,b,c]=i.split("-").map(Number);return new Date(a,b-1,c,12,0,0,0)}
