@@ -28,7 +28,7 @@ saveJSON(LOG_KEY,state.log)
 const viewEl=document.getElementById("view"),subtitleEl=document.getElementById("subtitle"),tabs=[...document.querySelectorAll(".tab")];
 const habitModal=document.getElementById("habitModal"),habitModalTitle=document.getElementById("habitModalTitle"),habitCloseBtn=document.getElementById("habitCloseBtn"),habitCancelBtn=document.getElementById("habitCancelBtn"),habitDeleteBtn=document.getElementById("habitDeleteBtn"),habitForm=document.getElementById("habitForm"),habitEditingId=document.getElementById("habitEditingId"),habitName=document.getElementById("habitName"),habitEmoji=document.getElementById("habitEmoji"),habitType=document.getElementById("habitType"),goalField=document.getElementById("goalField"),habitGoal=document.getElementById("habitGoal"),dowChks=[...document.querySelectorAll(".dowChk")];
 document.getElementById("addHabitBtn").addEventListener("click",()=>openHabitModal(null));
-const settingsBtn=document.getElementById("settingsBtn"),settingsModal=document.getElementById("settingsModal"),settingsCloseBtn=document.getElementById("settingsCloseBtn"),settingsDoneBtn=document.getElementById("settingsDoneBtn"),exportBtn=document.getElementById("exportBtn"),importFile=document.getElementById("importFile");
+const settingsBtn=document.getElementById("settingsBtn");
 function registerSW(){if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(console.error)}
 function isHabitActiveToday(h){const d=dowIndex(new Date());return Array.isArray(h.days)&&h.days.includes(d)}
 function getLogValue(dateISO,id){return state.log?.[dateISO]?.[id]}
@@ -55,23 +55,108 @@ function isCompletedOnDate(h,iso){const v=getLogValue(iso,h.id);return h.type===
 function completionRate(h,n){const dates=lastNDates(n);let eligible=0,done=0;for(const iso of dates){const dow=parseISO(iso).getDay();if(!h.days.includes(dow))continue;eligible++;if(isCompletedOnDate(h,iso))done++}return{eligible,done,pct:eligible?Math.round(done*100/eligible):0}}
 function streak(h){let count=0;const d=parseISO(todayISO());for(let i=0;i<3650;i++){const cur=new Date(d);cur.setDate(cur.getDate()-i);const iso=isoFromDate(cur);const dow=cur.getDay();if(!h.days.includes(dow))continue;if(isCompletedOnDate(h,iso))count++;else break}return count}
 function renderStats(){subtitleEl.textContent="Статистика";viewEl.innerHTML="";if(!state.habits.length){viewEl.innerHTML=`<div class="card"><div class="cardTitle">Нет привычек</div></div>`;return}const active=state.habits.filter(isHabitActiveToday),done=active.filter(completedToday).length,pct=active.length?Math.round(done*100/active.length):0;const head=document.createElement("div");head.className="card";head.innerHTML=`<div class="cardTitle">Сегодня: ${done} / ${active.length} (${pct}%)</div><div class="cardMeta">Ниже — % за 7/30 дней и серия по каждой привычке.</div>`;viewEl.appendChild(head);state.habits.forEach(h=>{const r7=completionRate(h,7),r30=completionRate(h,30),st=streak(h),title=`${h.emoji?h.emoji+" ":""}${h.name}`;const card=document.createElement("div");card.className="card";card.innerHTML=`<div class="row1"><div><div class="cardTitle">${escapeHtml(title)}</div><div class="cardMeta"><div>Серия: <b>${st}</b></div><div>7 дней: ${r7.done}/${r7.eligible} (${r7.pct}%)</div><div>30 дней: ${r30.done}/${r30.eligible} (${r30.pct}%)</div></div></div><button class="btn" data-action="edit" data-id="${h.id}">Редактировать</button></div>`;viewEl.appendChild(card)});viewEl.onclick=e=>{const b=e.target.closest("button[data-action='edit']");if(!b)return;const h=state.habits.find(x=>x.id===b.dataset.id);if(h)openHabitModal(h)}}
-function render(){state.tab==="today"?renderToday():state.tab==="habits"?renderHabits():renderStats()}
-function openSettings(){
-  // If another modal is open (e.g., "Добавить привычку"), close it first.
-  // Otherwise it can look like Settings "doesn't close" because a second modal remains visible.
-  try{ closeHabitModal(); }catch{}
-  settingsModal.classList.remove("hidden")
+function render(){
+  // Toggle "+ Привычка" button only when it makes sense
+  const addBtn=document.getElementById("addHabitBtn");
+  if(addBtn) addBtn.style.display = (state.tab==="settings") ? "none" : "";
+  subtitleEl.textContent = state.tab==="today" ? "Сегодня" : state.tab==="habits" ? "Привычки" : state.tab==="stats" ? "Статистика" : "Настройки";
+  if(state.tab==="today") return renderToday();
+  if(state.tab==="habits") return renderHabits();
+  if(state.tab==="stats") return renderStats();
+  return renderSettings();
 }
-function closeSettings(){settingsModal.classList.add("hidden")}
 
-// Convenience: allow closing modals with Escape
+function renderSettings(){
+  viewEl.innerHTML = `
+    <div class="settingsPage">
+      <div class="card settingsCard">
+        <h3 class="cardTitle">Настройки</h3>
+        <div class="settingsRow">
+          <div>
+            <div class="rowTitle">Экспорт данных</div>
+            <div class="rowSub">Скачать резервную копию (JSON).</div>
+          </div>
+          <button id="exportBtn" class="btn">Экспорт</button>
+        </div>
+        <div class="settingsRow">
+          <div>
+            <div class="rowTitle">Импорт данных</div>
+            <div class="rowSub">Восстановить из JSON (перезапишет текущие данные).</div>
+          </div>
+          <button id="importBtn" class="btn">Импорт</button>
+          <input id="importFile" type="file" accept="application/json" style="display:none" />
+        </div>
+        <div class="settingsRow">
+          <div>
+            <div class="rowTitle">Сброс</div>
+            <div class="rowSub">Удалить все привычки и отметки на этом устройстве.</div>
+          </div>
+          <button id="resetBtn" class="btn danger">Сбросить</button>
+        </div>
+      </div>
+      <div class="note" style="margin-top:16px;">Данные хранятся только на этом устройстве (без синхронизации).</div>
+    </div>
+  `;
+  const exportBtn=document.getElementById("exportBtn");
+  const importBtn=document.getElementById("importBtn");
+  const importFile=document.getElementById("importFile");
+  const resetBtn=document.getElementById("resetBtn");
+
+  exportBtn.addEventListener("click",()=>{
+    const data={habits:state.habits||[],log:state.log||{}};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    const stamp=new Date().toISOString().slice(0,10);
+    a.download=`habit-tracker-backup-${stamp}.json`;
+    document.body.appendChild(a);a.click();a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  importBtn.addEventListener("click",()=>importFile.click());
+  importFile.addEventListener("change",async()=>{
+    const file=importFile.files && importFile.files[0];
+    if(!file) return;
+    try{
+      const text=await file.text();
+      const data=JSON.parse(text);
+      if(Array.isArray(data.habits)) state.habits=data.habits;
+      if(data.log && typeof data.log==="object") state.log=data.log;
+      saveJSON(HABITS_KEY,state.habits);
+      saveJSON(LOG_KEY,state.log);
+      alert("Импорт выполнен ✅");
+      render();
+    }catch(err){
+      console.error(err);
+      alert("Не удалось импортировать файл.");
+    }finally{
+      importFile.value="";
+    }
+  });
+
+  resetBtn.addEventListener("click",()=>{
+    if(!confirm("Точно сбросить все данные?")) return;
+    state.habits=[];
+    state.log={};
+    saveJSON(HABITS_KEY,state.habits);
+    saveJSON(LOG_KEY,state.log);
+    alert("Готово. Данные очищены.");
+    render();
+  });
+}
+
+// Escape closes only the habit editor modal (settings is a separate screen now)
 document.addEventListener("keydown",(e)=>{
   if(e.key!=="Escape") return;
-  closeSettings();
   closeHabitModal();
 });
-settingsBtn.addEventListener("click",openSettings);settingsCloseBtn.addEventListener("click",closeSettings);settingsDoneBtn.addEventListener("click",closeSettings);settingsModal.addEventListener("click",e=>{if(e.target===settingsModal)closeSettings()});
-exportBtn.addEventListener("click",()=>{const data={habits:state.habits,log:state.log};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`habit-tracker-backup-${todayISO()}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
-importFile.addEventListener("change",async()=>{const file=importFile.files?.[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(!Array.isArray(data.habits)||typeof data.log!=="object")throw 0;state.habits=data.habits.map(normalizeHabit);state.log=data.log||{};saveJSON(HABITS_KEY,state.habits);saveJSON(LOG_KEY,state.log);alert("Импорт выполнен.");render()}catch{alert("Не удалось импортировать файл.")}finally{importFile.value=""}});
+
+// Settings button opens Settings tab
+settingsBtn.addEventListener("click",()=>{
+  const t=document.querySelector('.tab[data-tab="settings"]');
+  if(t) t.click();
+});
+
 function init(){registerSW();render()}
 init();

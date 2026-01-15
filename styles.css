@@ -52,3 +52,14 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-ser
 .lockCard{width:min(420px,92vw);border:1px solid var(--line);border-radius:18px;padding:16px;background:rgba(20,20,20,.9)}
 .lockTitle{font-weight:900;font-size:18px;margin-bottom:10px}
 .lockError{color:#ef4444;margin-top:10px;font-weight:800}
+
+
+/* Settings screen (no modal) */
+.settingsPage{max-width:760px;margin:0 auto;padding:12px}
+.settingsCard{padding:16px}
+.settingsRow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--line)}
+.settingsRow:first-of-type{border-top:none}
+.rowTitle{font-weight:800}
+.rowSub{color:var(--muted);font-size:12px;margin-top:4px}
+.btn.danger{border-color:rgba(239,68,68,.45);color:#ef4444}
+.btn.danger:hover{background:rgba(239,68,68,.12)}

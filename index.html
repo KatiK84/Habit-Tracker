@@ -29,7 +29,8 @@
       <button class="tab active" data-tab="today">Сегодня</button>
       <button class="tab" data-tab="habits">Привычки</button>
       <button class="tab" data-tab="stats">Статистика</button>
-    </nav>
+          <button class="tab" data-tab="settings">Настройки</button>
+</nav>
 
     <section id="view" class="view"></section>
 
@@ -91,20 +92,6 @@
       </form>
     </div>
   </div>
-
-  <!-- Settings modal -->
-  <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modalCard">
-      <div class="modalHeader">
-        <div class="modalTitle">Настройки</div>
-        <button class="iconBtn" id="settingsCloseBtn" aria-label="Закрыть">✕</button>
-      </div>
-      <div class="form">
-        <div class="settingRow">
-          <div>
-            <div class="settingTitle">Экспорт данных</div>
-            <div class="settingDesc">Скачать резервную копию (JSON).</div>
-          </div>
           <button id="exportBtn" class="btn">Экспорт</button>
         </div>
 
