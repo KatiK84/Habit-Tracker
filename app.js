@@ -36,8 +36,17 @@ function setLogValue(dateISO,id,val){state.log[dateISO]=state.log[dateISO]||{};s
 function normalizeHabit(h){return{id:h.id??uid(),name:String(h.name??"Привычка"),emoji:String(h.emoji??""),type:h.type==="count"?"count":"check",goal:Math.max(1,Number(h.goal??1)||1),days:Array.isArray(h.days)?h.days:[1,2,3,4,5,6,0]}}
 function syncGoalField(){habitType.value==="count"?goalField.classList.remove("hidden"):goalField.classList.add("hidden")}
 habitType.addEventListener("change",syncGoalField);
-function openHabitModal(edit){habitModal.classList.remove("hidden");if(edit){habitModalTitle.textContent="Редактировать привычку";habitEditingId.value=edit.id;habitName.value=edit.name;habitEmoji.value=edit.emoji||"";habitType.value=edit.type;habitGoal.value=edit.goal||1;dowChks.forEach(ch=>ch.checked=edit.days.includes(Number(ch.value)));habitDeleteBtn.classList.remove("hidden")}else{habitModalTitle.textContent="Добавить привычку";habitEditingId.value="";habitName.value="";habitEmoji.value="";habitType.value="check";habitGoal.value=8;dowChks.forEach(ch=>ch.checked=!0);habitDeleteBtn.classList.add("hidden")}syncGoalField()}
-function closeHabitModal(){habitModal.classList.add("hidden")}
+function openHabitModal(edit){
+  habitModal.classList.remove("hidden");
+  // Force display because Safari + SW caching can sometimes keep stale styles.
+  habitModal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+  if(edit){habitModalTitle.textContent="Редактировать привычку";habitEditingId.value=edit.id;habitName.value=edit.name;habitEmoji.value=edit.emoji||"";habitType.value=edit.type;habitGoal.value=edit.goal||1;dowChks.forEach(ch=>ch.checked=edit.days.includes(Number(ch.value)));habitDeleteBtn.classList.remove("hidden")}else{habitModalTitle.textContent="Добавить привычку";habitEditingId.value="";habitName.value="";habitEmoji.value="";habitType.value="check";habitGoal.value=8;dowChks.forEach(ch=>ch.checked=!0);habitDeleteBtn.classList.add("hidden")}syncGoalField()}
+function closeHabitModal(){
+  habitModal.classList.add("hidden");
+  habitModal.style.display = "none";
+  document.body.style.overflow = "auto";
+}
 habitCloseBtn.addEventListener("click",closeHabitModal);
 habitCancelBtn.addEventListener("click",closeHabitModal);
 habitModal.addEventListener("click",e=>{if(e.target===habitModal)closeHabitModal()});
